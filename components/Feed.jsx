@@ -19,8 +19,10 @@ const PromptCardList = ({ data, handleTagClick }) => {
 
 const Feed = () => {
     const [searchText, setSearchText] = useState("");
+    const [searchTimeout, setSearchTimeout] = useState(null);
+    const [searchResult, setSearchResult] = useState([]);
+
     const [posts, setPosts] = useState([]);
-    const handleSearchChange = (e) => {};
 
     useEffect(() => {
         const fetchPosts = async () => {
@@ -30,6 +32,34 @@ const Feed = () => {
         };
         fetchPosts();
     }, []);
+
+    const filterPrompts = (searctext) => {
+        const regex = new RegExp(searctext, "i");
+        return posts.filter(
+            (item) =>
+                regex.test(item.creator.username) ||
+                regex.test(item.tag) ||
+                regex.test(item.prompt)
+        );
+    };
+    const handleSearchChange = (e) => {
+        clearTimeout(searchTimeout);
+        setSearchText(e.target.value);
+        console.log(searchText);
+        console.log(searchResult);
+        setSearchTimeout(
+            setTimeout(() => {
+                const searchResult = filterPrompts(e.target.value);
+                setSearchResult(searchResult);
+            }, 500)
+        );
+    };
+    const handleTagClick = (tagName) => {
+        setSearchText(tagName);
+        const searchResult = filterPrompts(tagName);
+        setSearchResult(searchResult);
+    };
+
     return (
         <section className="feed">
             <form action="" className="relative w-full flex-center">
@@ -42,7 +72,15 @@ const Feed = () => {
                     className="search_input peer"
                 />
             </form>
-            <PromptCardList data={posts} handleTagClick={() => {}} />
+
+            {searchText ? (
+                <PromptCardList
+                    data={searchResult}
+                    handleTagClick={handleTagClick}
+                />
+            ) : (
+                <PromptCardList data={posts} handleTagClick={handleTagClick} />
+            )}
         </section>
     );
 };
